@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"sort"
 	"strings"
 	"time"
 )
@@ -29,14 +30,16 @@ func (ct *CustomTime) UnmarshalJSON(b []byte) error {
 }
 
 type AdditionalFields struct {
-	Duration    string `json:"duration"`
-	SubHeadline string `json:"subHeadline"`
-	Description string `json:"description"`
-	Category    string `json:"category"`
-	Expertise   string `json:"expertise"`
-	ContentType string `json:"contentType"`
-	Headline    string `json:"headline"`
-	EventDate   string `json:"eventDate"`
+	Duration      string `json:"duration"`
+	SubHeadline   string `json:"subHeadline"`
+	Description   string `json:"description"`
+	Category      string `json:"category"`
+	Expertise     string `json:"expertise"`
+	ContentType   string `json:"contentType"`
+	Headline      string `json:"headline"`
+	EventDate     string `json:"eventDate"`
+	DurationStart string `json:"durationStart"`
+	DurationEnd   string `json:"durationEnd"`
 }
 
 type Item struct {
@@ -126,9 +129,27 @@ func main() {
 		return
 	}
 
+	for i, item := range items {
+		duration := strings.Split(item.Item.AdditionalFields.Duration, "-")
+		startTime := strings.TrimSpace(duration[0])
+		endTime := strings.TrimSpace(duration[1])
+		startTimeFormatted, err := time.Parse("03:04 PM", startTime)
+		if err != nil {
+			fmt.Println("Failed to parse start time:", err)
+			return
+		}
+		endTimeFormatted, err := time.Parse("03:04 PM", endTime)
+		if err != nil {
+			fmt.Println("Failed to parse end time:", err)
+			return
+		}
+		items[i].Item.AdditionalFields.DurationStart = startTimeFormatted.Format("15:04:05")
+		items[i].Item.AdditionalFields.DurationEnd = endTimeFormatted.Format("15:04:05")
+	}
+
 	fmt.Println("Count:", len(items))
 
-	activeFilter := Filter{ExpertiseLevel: Advanced, EventDate: "June 26th"}
+	activeFilter := Filter{ExpertiseLevel: Expert, EventDate: "June 26th"}
 
 	var filteredItems []ItemWithTags
 	for _, item := range items {
@@ -139,15 +160,21 @@ func main() {
 
 	fmt.Println("Filtered Count:", len(filteredItems))
 
+	// Sort filteredItems in ascending order based on duration start
+	sort.Slice(filteredItems, func(i, j int) bool {
+		return filteredItems[i].Item.AdditionalFields.DurationStart < filteredItems[j].Item.AdditionalFields.DurationStart
+	})
+
 	for _, item := range filteredItems {
 		fmt.Println("----------------------------------------")
 		fmt.Println("Name:", item.Item.Name)
-		fmt.Println("Duration:", item.Item.AdditionalFields.Duration)
 		fmt.Println("Teacher:", item.Item.AdditionalFields.SubHeadline)
 		fmt.Println("Description:", item.Item.AdditionalFields.Description)
 		fmt.Println("Category:", item.Item.AdditionalFields.Category)
 		fmt.Println("Expertise:", item.Item.AdditionalFields.Expertise)
 		fmt.Println("Headline:", item.Item.AdditionalFields.Headline)
 		fmt.Println("Event Date:", item.Item.AdditionalFields.EventDate)
+		fmt.Println("Duration Start:", item.Item.AdditionalFields.DurationStart)
+		fmt.Println("Duration End:", item.Item.AdditionalFields.DurationEnd)
 	}
 }
