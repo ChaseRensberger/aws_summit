@@ -149,7 +149,7 @@ func main() {
 
 	fmt.Println("Count:", len(items))
 
-	activeFilter := Filter{ExpertiseLevel: Expert, EventDate: "June 26th"}
+	activeFilter := Filter{ExpertiseLevel: Advanced, EventDate: "June 26th"}
 
 	var filteredItems []ItemWithTags
 	for _, item := range items {
