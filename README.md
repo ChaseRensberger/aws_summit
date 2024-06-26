@@ -1,0 +1,1 @@
+Made this to help me figure out what sessions were at AWS summit since their website for browsing it was atrocious. This was also before I discovered that the AWS Events App is actually really good and is the best way to browse conference sessions.
