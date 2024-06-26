@@ -69,8 +69,36 @@ type ItemWithTags struct {
 	Tags []Tag `json:"tags"`
 }
 
-type responseType struct {
+type Response struct {
 	Items []ItemWithTags `json:"items"`
+}
+type ExpertiseLevel int
+
+const (
+	Beginner ExpertiseLevel = iota
+	Intermediate
+	Advanced
+	Expert
+)
+
+func (el ExpertiseLevel) String() string {
+	switch el {
+	case Beginner:
+		return "100 – Beginner"
+	case Intermediate:
+		return "200 – Intermediate"
+	case Advanced:
+		return "300 – Advanced"
+	case Expert:
+		return "400 – Expert"
+	default:
+		return "Unknown"
+	}
+}
+
+type Filter struct {
+	ExpertiseLevel ExpertiseLevel
+	EventDate      string
 }
 
 func main() {
@@ -89,7 +117,7 @@ func main() {
 		return
 	}
 
-	var responseObj responseType
+	var responseObj Response
 	var items []ItemWithTags
 	err = json.Unmarshal(body, &responseObj)
 	items = responseObj.Items
@@ -100,9 +128,11 @@ func main() {
 
 	fmt.Println("Count:", len(items))
 
+	activeFilter := Filter{ExpertiseLevel: Advanced, EventDate: "June 26th"}
+
 	var filteredItems []ItemWithTags
 	for _, item := range items {
-		if item.Item.AdditionalFields.EventDate == "June 26th" && item.Item.AdditionalFields.Expertise == "300 – Advanced" {
+		if item.Item.AdditionalFields.EventDate == activeFilter.EventDate && item.Item.AdditionalFields.Expertise == activeFilter.ExpertiseLevel.String() {
 			filteredItems = append(filteredItems, item)
 		}
 	}
@@ -120,5 +150,4 @@ func main() {
 		fmt.Println("Headline:", item.Item.AdditionalFields.Headline)
 		fmt.Println("Event Date:", item.Item.AdditionalFields.EventDate)
 	}
-
 }
